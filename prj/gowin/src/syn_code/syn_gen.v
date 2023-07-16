@@ -42,7 +42,7 @@ module syn_gen (
 //==============================================================================
 //Generate HS, VS, DE signals
 
-  always@(posedge I_pxl_clk or negedge I_rst_n) begin
+  always @(posedge I_pxl_clk or negedge I_rst_n) begin
     if (!I_rst_n)
       V_cnt <= 16'd0;
     else begin
@@ -68,15 +68,15 @@ module syn_gen (
 
 //-------------------------------------------------------------
 
-  assign Pout_de_w = ((H_cnt>=(I_h_sync+I_h_bporch))&(H_cnt<=(I_h_sync+I_h_bporch+I_h_res-1'b1)))&
-                     ((V_cnt>=(I_v_sync+I_v_bporch))&(V_cnt<=(I_v_sync+I_v_bporch+I_v_res-1'b1)));
-  assign Pout_hs_w = ~((H_cnt>=16'd0) & (H_cnt<=(I_h_sync-1'b1)));
-  assign Pout_vs_w = ~((V_cnt>=16'd0) & (V_cnt<=(I_v_sync-1'b1)));
+  assign Pout_de_w = (H_cnt >= (I_h_sync+I_h_bporch)) && (H_cnt <= (I_h_sync+I_h_bporch+I_h_res-1'b1)) &&
+                     (V_cnt >= (I_v_sync+I_v_bporch)) && (V_cnt <= (I_v_sync+I_v_bporch+I_v_res-1'b1));
+  assign Pout_hs_w = !((H_cnt >= 16'd0) && (H_cnt <= (I_h_sync-1'b1)));
+  assign Pout_vs_w = !((V_cnt >= 16'd0) && (V_cnt <= (I_v_sync-1'b1)));
 
 //==============================================================================
 
-  assign Rden_w = ((H_cnt>=(I_h_sync+I_h_bporch))&(H_cnt<=(I_h_sync+I_h_bporch+I_rd_hres-1'b1)))&
-                  ((V_cnt>=(I_v_sync+I_v_bporch))&(V_cnt<=(I_v_sync+I_v_bporch+I_rd_vres-1'b1)));
+  assign Rden_w = (H_cnt >= (I_h_sync+I_h_bporch)) && (H_cnt <= (I_h_sync+I_h_bporch+I_rd_hres-1'b1)) &&
+                  (V_cnt >= (I_v_sync+I_v_bporch)) && (V_cnt <= (I_v_sync+I_v_bporch+I_rd_vres-1'b1));
 
   always @(posedge I_pxl_clk or negedge I_rst_n) begin
     if (!I_rst_n) begin

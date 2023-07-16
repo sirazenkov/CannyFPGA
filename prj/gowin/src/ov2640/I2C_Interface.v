@@ -23,12 +23,12 @@ module I2C_Interface #(parameter SID = 8'h42) (
 
   // Internal signals
   reg [7:0] divider = 8'b00000001;
-  reg [31:0] busy_sr = {32{1'b0}};
-  reg [31:0] data_sr = {32{1'b1}};
+  reg [31:0] busy_sr = 32'd0;
+  reg [31:0] data_sr = 32'd1;
   reg sioc_temp;
   reg taken_temp;
   reg siod_temp;
-    
+
   // ID of an OV7670 for SCCB protocol
   localparam id = SID;//8'h42;
 
@@ -40,15 +40,15 @@ module I2C_Interface #(parameter SID = 8'h42) (
   always @ (busy_sr or data_sr[31]) begin
     if (busy_sr[11:10] == 2'b10 || busy_sr[20:19] == 2'b10 || busy_sr[29:28] == 2'b10)
       siod_temp <= 1'bZ;        // when the bus is idle SIOD must be tri-state
-    else 
+    else
       siod_temp <= data_sr[31]; // else SIOD will be driven my master (FPGA board)
   end
-        
+
   always @ (posedge clk) begin
     taken_temp <= 1'b0;
-    if (busy_sr[31] == 0) begin // If all 31 bits are transmitted
-      sioc_temp <= 1; // Assert SIOC high for starting new transmission
-      if (send == 1) begin // If New data is arrived from LUT
+    if (!busy_sr[31]) begin // If all 31 bits are transmitted
+      sioc_temp <= 1'b1; // Assert SIOC high for starting new transmission
+      if (send) begin // If New data is arrived from LUT
         if (divider == 8'b00000000) begin
           // Create an data to send through the data signal of the SCCB
           // The data is created using 3-phase write transmission cycle of SCCB protocol
@@ -67,82 +67,82 @@ module I2C_Interface #(parameter SID = 8'h42) (
           busy_sr <= {3'b111, 9'b111111111, 9'b111111111, 9'b111111111, 2'b11};
           taken_temp <= 1'b1;
         end else
-          divider <= divider + 1;
+          divider <= divider + 1'b1;
       end        
     end else begin                         // Implement two-write data transmission of SCCB protocol
       case ({busy_sr[31:29],busy_sr[2:0]}) // Checking for the start and stop condition
         // For START condition
-        6'b111_111: begin            // bit 31th of data_sr is transmitted, SIOC must be high
-          case (divider[7:6])        // --> SIOD goes from tri-state to high             
-            2'b00:   sioc_temp <= 1;          
-            2'b01:   sioc_temp <= 1;          
-            2'b10:   sioc_temp <= 1;          
-            default: sioc_temp <= 1;
+        6'b111_111: begin               // bit 31th of data_sr is transmitted, SIOC must be high
+          case (divider[7:6])           // --> SIOD goes from tri-state to high
+            2'b00:   sioc_temp <= 1'b1;
+            2'b01:   sioc_temp <= 1'b1;
+            2'b10:   sioc_temp <= 1'b1;
+            default: sioc_temp <= 1'b1;
           endcase
         end
-        6'b111_110: begin            // bit 30th of data_sr is transmitted
-          case (divider[7:6])        // --> SIOD goes from high to low, SIOC must be high
-            2'b00:   sioc_temp <= 1; // --> complete START condition
-            2'b01:   sioc_temp <= 1;
-            2'b10:   sioc_temp <= 1;
-            default: sioc_temp <= 1;
+        6'b111_110: begin               // bit 30th of data_sr is transmitted
+          case (divider[7:6])           // --> SIOD goes from high to low, SIOC must be high
+            2'b00:   sioc_temp <= 1'b1; // --> complete START condition
+            2'b01:   sioc_temp <= 1'b1;
+            2'b10:   sioc_temp <= 1'b1;
+            default: sioc_temp <= 1'b1;
           endcase
         end
-        6'b111_100: begin            // bit 29th of data_sr is transmitted (don't care bit)
-          case (divider[7:6])        // --> SIOD goes from tri-state to high, then high to low 
-            2'b00:   sioc_temp <= 0; //     after SIOC goes from high to low 
-            2'b01:   sioc_temp <= 0; // --> Ready for first transmission from Master to Slave
-            2'b10:   sioc_temp <= 0;
-            default: sioc_temp <= 0;
+        6'b111_100: begin               // bit 29th of data_sr is transmitted (don't care bit)
+          case (divider[7:6])           // --> SIOD goes from tri-state to high, then high to low 
+            2'b00:   sioc_temp <= 1'b0; //     after SIOC goes from high to low 
+            2'b01:   sioc_temp <= 1'b0; // --> Ready for first transmission from Master to Slave
+            2'b10:   sioc_temp <= 1'b0;
+            default: sioc_temp <= 1'b0;
           endcase
         end
 
         // For STOP condition
-        6'b110_000: begin            // bit 2nd of data_sr is transmitted (don't care bit)
-          case (divider[7:6])        // SIOC waits for 1 clock cyle of 200Khz then go high    
-            2'b00:   sioc_temp <= 0;
-            2'b01:   sioc_temp <= 1;
-            2'b10:   sioc_temp <= 1;
-            default: sioc_temp <= 1;
+        6'b110_000: begin              // bit 2nd of data_sr is transmitted (don't care bit)
+          case (divider[7:6])          // SIOC waits for 1 clock cyle of 200Khz then go high
+            2'b00:   sioc_temp <= 1'b0;
+            2'b01:   sioc_temp <= 1'b1;
+            2'b10:   sioc_temp <= 1'b1;
+            default: sioc_temp <= 1'b1;
           endcase
         end
-        6'b100_000: begin            // bit 1st of data_sr is transmitted
-          case (divider[7:6])        // SIOD is low
-            2'b00:   sioc_temp <= 1; // SIOC must be high
-            2'b01:   sioc_temp <= 1;
-            2'b10:   sioc_temp <= 1;
-            default: sioc_temp <= 1;
+        6'b100_000: begin               // bit 1st of data_sr is transmitted
+          case (divider[7:6])           // SIOD is low
+            2'b00:   sioc_temp <= 1'b1; // SIOC must be high
+            2'b01:   sioc_temp <= 1'b1;
+            2'b10:   sioc_temp <= 1'b1;
+            default: sioc_temp <= 1'b1;
           endcase
         end
-        6'b000_000: begin            // bit 0th of data_sr is transmitted
-          case (divider[7:6])        // SIOD is high
-            2'b00:   sioc_temp <= 1; // --> SIOD goes from low to high while SIOC is high
-            2'b01:   sioc_temp <= 1; // --> complete STOP condition for SCCB protocol
-            2'b10:   sioc_temp <= 1;
-            default: sioc_temp <= 1;
+        6'b000_000: begin               // bit 0th of data_sr is transmitted
+          case (divider[7:6])           // SIOD is high
+            2'b00:   sioc_temp <= 1'b1; // --> SIOD goes from low to high while SIOC is high
+            2'b01:   sioc_temp <= 1'b1; // --> complete STOP condition for SCCB protocol
+            2'b10:   sioc_temp <= 1'b1;
+            default: sioc_temp <= 1'b1;
           endcase
         end
-        
+
         // Between START and STOP condition
         // SIOC is high on 2 cycles of 400Khz and low on 2 cycle of 400Khz
         // --> SIOC is 200Khz
-        default: begin                          
+        default: begin
           case (divider[7:6])
-            2'b00: sioc_temp <= 0;          
-            2'b01: sioc_temp <= 1;          
-            2'b10: sioc_temp <= 1;
-            default: sioc_temp <= 0;
+            2'b00:   sioc_temp <= 1'b0;
+            2'b01:   sioc_temp <= 1'b1;
+            2'b10:   sioc_temp <= 1'b1;
+            default: sioc_temp <= 1'b0;
           endcase
         end
       endcase
-        
+
       // Create a frequency for SCCB with is 200KHz
-      if (divider == 8'b11111111) begin
+      if (&divider) begin
         busy_sr <= {busy_sr[30:0], 1'b0}; // Update number of bit that get transmitted
         data_sr <= {data_sr[30:0], 1'b1}; // Update new bit 31th by bit 30th
-        divider <= {8{1'b0}};             // Reset counter for clock divider
+        divider <= 8'd0;                  // Reset counter for clock divider
       end else
-        divider <= divider + 1;
+        divider <= divider + 1'b1;
     end
   end
 

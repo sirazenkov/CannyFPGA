@@ -9,7 +9,7 @@ module OV2640_Registers (
   // Internal signals
   reg [15:0] sreg;
   reg finished_temp;
-  reg [8:0] address = {9{1'b0}};
+  reg [8:0] address = 9'd0;
 
   // Assign values to outputs
   assign command = sreg;
@@ -17,19 +17,19 @@ module OV2640_Registers (
 
   // When register and value is FFFF
   // a flag is asserted indicating the configuration is finished
-  always @ (sreg) begin
-    if(sreg == 16'hFFFF)
-      finished_temp <= 1;
+  always @(sreg) begin
+    if (&sreg)
+      finished_temp <= 1'b1;
     else
-      finished_temp <= 0;
+      finished_temp <= 1'b0;
   end
    
   // Get value out of the LUT
-  always @ (posedge clk) begin
-    if(resend == 1)       // reset the configuration
-      address <= {8{1'b0}};
-    else if(advance == 1) // Get the next value
-      address <= address+1;
+  always @(posedge clk) begin
+    if (resend)       // reset the configuration
+      address <= 9'd0;
+    else if (advance) // Get the next value
+      address <= address + 1'b1;
        
     case (address)
       000: sreg <= 16'hFF_01;
@@ -242,7 +242,7 @@ module OV2640_Registers (
       207: sreg <= 16'h05_01;
       208: sreg <= 16'hE0_04;
       209: sreg <= 16'hC0_64; /* Image Horizontal Size 0x51[10:3] */  //11_0010_0000 = 800
-      210: sreg <= 16'hC1_4B; /* Image Vertiacl Size 0x52[10:3] */    //10_0101_1000 = 600   
+      210: sreg <= 16'hC1_4B; /* Image Vertical Size 0x52[10:3] */    //10_0101_1000 = 600   
       211: sreg <= 16'h8C_00; /* {0x51[11], 0x51[2:0], 0x52[2:0]} */
       212: sreg <= 16'h53_00; /* OFFSET_X[7:0] */
       213: sreg <= 16'h54_00; /* OFFSET_Y[7:0] */

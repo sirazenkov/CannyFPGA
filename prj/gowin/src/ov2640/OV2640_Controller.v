@@ -12,14 +12,14 @@ module OV2640_Controller (
   wire [15:0] command;
   wire finished;
   wire taken;
-  reg send = 0;
+  reg send = 1'b0;
 
   // Signal for testing
   assign config_finished = finished;
 
   // Signals for RESET and PWDN OV2640
-  assign reset = 1;
-  assign pwdn = 0;
+  assign reset = 1'b1;
+  assign pwdn = 1'b0;
     
   // Signal to indicate that the configuration is finshied    
   always @ (finished) send = ~finished;

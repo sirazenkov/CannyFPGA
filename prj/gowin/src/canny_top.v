@@ -1,7 +1,6 @@
 module canny_top (
   input        I_clk, //27Mhz
   input        I_rst_n,
-  output       O_led,
   inout        SDA,
   inout        SCL,
   input        VSYNC,
@@ -22,11 +21,6 @@ module canny_top (
 );
 
 //==================================================
-
-  reg  [31:0] run_cnt;
-  wire        running;
-
-//--------------------------
 
   reg  [9:0]  pixdata_d1;
   reg         hcnt;
@@ -87,20 +81,6 @@ module canny_top (
   wire clk_12M;
 
 //===================================================
-//LED test
-
-  always @(posedge I_clk or negedge I_rst_n) begin //I_clk
-    if (!I_rst_n)
-      run_cnt <= 32'd0;
-    else if (run_cnt >= 32'd27_000_000)
-      run_cnt <= 32'd0;
-    else
-      run_cnt <= run_cnt + 1'b1;
-  end
-
-  assign running = (run_cnt < 32'd13_500_000) ? 1'b1 : 1'b0;
-
-  assign O_led = running;
 
   assign XCLK = clk_12M;
 
@@ -130,7 +110,7 @@ module canny_top (
       hcnt <= 1'd0;
   end
 
-  assign cam_data = {PIXDATA[9:5],PIXDATA[9:4],PIXDATA[9:5]}; //RAW10
+  assign cam_data = {pixdata_d1[9:5], pixdata_d1[9:4], pixdata_d1[9:5]}; //RAW10
 
 //==============================================
 //data width 16bit
@@ -206,23 +186,23 @@ module canny_top (
 //================================================
 
   wire out_de;
-  syn_gen syn_gen_inst (                                   
-    .I_pxl_clk (pix_clk    ),//40MHz      //65MHz      //74.25MHz    
-    .I_rst_n   (hdmi_rst_n ),//800x600    //1024x768   //1280x720       
-    .I_h_total (16'd1650   ),// 16'd1056  // 16'd1344  // 16'd1650    
-    .I_h_sync  (16'd40     ),// 16'd128   // 16'd136   // 16'd40     
-    .I_h_bporch(16'd220    ),// 16'd88    // 16'd160   // 16'd220     
-    .I_h_res   (16'd1280   ),// 16'd800   // 16'd1024  // 16'd1280    
-    .I_v_total (16'd750    ),// 16'd628   // 16'd806   // 16'd750      
-    .I_v_sync  (16'd5      ),// 16'd4     // 16'd6     // 16'd5        
-    .I_v_bporch(16'd20     ),// 16'd23    // 16'd29    // 16'd20        
-    .I_v_res   (16'd720    ),// 16'd600   // 16'd768   // 16'd720      
+  syn_gen syn_gen_inst (
+    .I_pxl_clk (pix_clk    ),//40MHz      //65MHz      //74.25MHz
+    .I_rst_n   (hdmi_rst_n ),//800x600    //1024x768   //1280x720
+    .I_h_total (16'd1650   ),// 16'd1056  // 16'd1344  // 16'd1650
+    .I_h_sync  (16'd40     ),// 16'd128   // 16'd136   // 16'd40
+    .I_h_bporch(16'd220    ),// 16'd88    // 16'd160   // 16'd220
+    .I_h_res   (16'd1280   ),// 16'd800   // 16'd1024  // 16'd1280
+    .I_v_total (16'd750    ),// 16'd628   // 16'd806   // 16'd750
+    .I_v_sync  (16'd5      ),// 16'd4     // 16'd6     // 16'd5
+    .I_v_bporch(16'd20     ),// 16'd23    // 16'd29    // 16'd20
+    .I_v_res   (16'd720    ),// 16'd600   // 16'd768   // 16'd720
     .I_rd_hres (16'd640    ),
     .I_rd_vres (16'd480    ),
     .I_hs_pol  (1'b1       ),//HS polarity , 0:neg.polarity，1：pos.polarity
     .I_vs_pol  (1'b1       ),//VS polarity , 0:neg.polarity，1：pos.polarity
     .O_rden    (syn_off0_re),
-    .O_de      (out_de     ),   
+    .O_de      (out_de     ),
     .O_hs      (syn_off0_hs),
     .O_vs      (syn_off0_vs)
   );
@@ -233,7 +213,7 @@ localparam N = 5; //delay N clocks
   reg [N-1:0] Pout_vs_dn;
   reg [N-1:0] Pout_de_dn;
 
-  always@(posedge pix_clk or negedge hdmi_rst_n) begin
+  always @(posedge pix_clk or negedge hdmi_rst_n) begin
     if (!hdmi_rst_n) begin                          
       Pout_hs_dn <= {N{1'b1}};
       Pout_vs_dn <= {N{1'b1}}; 
@@ -248,11 +228,10 @@ localparam N = 5; //delay N clocks
 //==============================================================================
 //TMDS TX
 
-  assign rgb_data = off0_syn_de ? {off0_syn_data[15:11],3'd0,off0_syn_data[10:5],2'd0,off0_syn_data[4:0],3'd0} : 24'h0000ff;//{r,g,b}
+  assign rgb_data = off0_syn_de ? {off0_syn_data[15:11],3'd0,off0_syn_data[10:5],2'd0,off0_syn_data[4:0],3'd0} : 24'h000000;//{r,g,b}
   assign rgb_vs   = Pout_vs_dn[4];//syn_off0_vs;
   assign rgb_hs   = Pout_hs_dn[4];//syn_off0_hs;
   assign rgb_de   = Pout_de_dn[4];//off0_syn_de;
-
 
   TMDS_PLLVR TMDS_PLLVR_inst (
     .clkin  (I_clk     ), //input clk 
