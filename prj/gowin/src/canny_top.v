@@ -1,19 +1,27 @@
 module canny_top (
-  input        I_clk, //27Mhz
-  input        I_rst_n,
+  input        iclk, //27Mhz
+  input        irst_n,
+
+  // SCCB interface
   inout        SDA,
   inout        SCL,
+
+  // OV2640 camera
   input        VSYNC,
   input        HREF,
   input  [9:0] PIXDATA,
   input        PIXCLK,
   output       XCLK,
+  
+  // HyperRAM
   output [0:0] O_hpram_ck,
   output [0:0] O_hpram_ck_n,
   output [0:0] O_hpram_cs_n,
   output [0:0] O_hpram_reset_n,
   inout  [7:0] IO_hpram_dq,
   inout  [0:0] IO_hpram_rwds,
+  
+  // HDMI
   output       O_tmds_clk_p,
   output       O_tmds_clk_n,
   output [2:0] O_tmds_data_p, //{r,g,b}
@@ -94,15 +102,15 @@ module canny_top (
     .pwdn           (       )  // PWDN signal for OV7670
   );
 
-  always @(posedge PIXCLK or negedge I_rst_n) begin //I_clk
-    if (!I_rst_n)
+  always @(posedge PIXCLK or negedge irst_n) begin //iclk
+    if (!irst_n)
       pixdata_d1 <= 10'd0;
     else
       pixdata_d1 <= PIXDATA;
   end
 
-  always @(posedge PIXCLK or negedge I_rst_n) begin //I_clk
-    if (!I_rst_n)
+  always @(posedge PIXCLK or negedge irst_n) begin //iclk
+    if (!irst_n)
       hcnt <= 1'd0;
     else if (HREF)
       hcnt <= ~hcnt;
@@ -158,14 +166,14 @@ module canny_top (
   GW_PLLVR GW_PLLVR_inst (
     .clkout(memory_clk  ), //output clkout
     .lock  (mem_pll_lock), //output lock
-    .clkin (I_clk       )  //input clkin
+    .clkin (iclk        )  //input clkin
   );
 
   HyperRAM_Memory_Interface_Top HyperRAM_Memory_Interface_Top_inst (
-    .clk            (I_clk          ),
+    .clk            (iclk           ),
     .memory_clk     (memory_clk     ),
     .pll_lock       (mem_pll_lock   ),
-    .rst_n          (I_rst_n        ), //rst_n
+    .rst_n          (irst_n         ), //rst_n
     .O_hpram_ck     (O_hpram_ck     ),
     .O_hpram_ck_n   (O_hpram_ck_n   ),
     .IO_hpram_rwds  (IO_hpram_rwds  ),
@@ -234,13 +242,13 @@ localparam N = 5; //delay N clocks
   assign rgb_de   = Pout_de_dn[4];//off0_syn_de;
 
   TMDS_PLLVR TMDS_PLLVR_inst (
-    .clkin  (I_clk     ), //input clk 
+    .clkin  (iclk      ), //input clk 
     .clkout (serial_clk), //output clk 
     .clkoutd(clk_12M   ), //output clkoutd
     .lock   (pll_lock  )  //output lock
   );
 
-  assign hdmi_rst_n = I_rst_n & pll_lock;
+  assign hdmi_rst_n = irst_n & pll_lock;
 
   CLKDIV u_clkdiv (
     .RESETN(hdmi_rst_n),
