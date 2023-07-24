@@ -1,22 +1,22 @@
 -series GW1NSR
 -device GW1NSR-4C
 -package QFN48P
--part_number GW1NSR-LV4CQN48PC7/I6
+-part_number GW1NSR-LV4CQN48PC6/I5
 
 
 -mod_name GW_PLLVR
 -file_name GW_PLLVR
--path D:/proj/g1nsr4_goai_hyram/project/src/gowin_pllvr/
+-path C:/Users/semen/Documents/CS/MyProjects/CannyFPGA/repo/prj/gowin/src/gowin_pllvr/
 -type PLL
 -pllvr true
 -file_type vlg
 -dev_type GW1NSR-4C
 -dyn_idiv_sel false
--idiv_sel 9
+-idiv_sel 1
 -dyn_fbdiv_sel false
--fbdiv_sel 53
+-fbdiv_sel 3
 -dyn_odiv_sel false
--odiv_sel 4
+-odiv_sel 8
 -dyn_da_en true
 -rst_sig false
 -rst_sig_p false

@@ -29,8 +29,7 @@ create_generated_clock -name pix_clk
 create_generated_clock -name memory_clk
                        -source [get_ports {iclk}]
                        -master_clock iclk
-                       -multiply_by 53
-                       -divide_by 9
+                       -multiply_by 3
                        [get_pins {GW_PLLVR_inst/pllvr_inst/CLKOUT}]
 
 create_generated_clock -name dma_clk
