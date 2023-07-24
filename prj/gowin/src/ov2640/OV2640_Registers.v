@@ -210,7 +210,7 @@ module OV2640_Registers (
       175: sreg <= 16'hFF_01;
       176: sreg <= 16'hFF_00;
       177: sreg <= 16'hE0_04;
-      178: sreg <= 16'hDA_04; //08:RGB565  04:RAW10
+      178: sreg <= 16'hDA_40; //40:Y8  08:RGB565  04:RAW10  00:YUV422
       179: sreg <= 16'hD7_03;
       180: sreg <= 16'hE1_77;
       181: sreg <= 16'hE0_00;

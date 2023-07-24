@@ -30,7 +30,7 @@ module canny_top (
 
 //==================================================
 
-  reg  [9:0]  pixdata_d1;
+  reg  [7:0]  pixdata_d1;
   reg         hcnt;
   wire [15:0] cam_data;
 
@@ -104,9 +104,9 @@ module canny_top (
 
   always @(posedge PIXCLK or negedge irst_n) begin //iclk
     if (!irst_n)
-      pixdata_d1 <= 10'd0;
+      pixdata_d1 <= 8'd0;
     else
-      pixdata_d1 <= PIXDATA;
+      pixdata_d1 <= PIXDATA[9:2];
   end
 
   always @(posedge PIXCLK or negedge irst_n) begin //iclk
@@ -118,7 +118,7 @@ module canny_top (
       hcnt <= 1'd0;
   end
 
-  assign cam_data = {pixdata_d1[9:5], pixdata_d1[9:4], pixdata_d1[9:5]}; //RAW10
+  assign cam_data = {8'd0, pixdata_d1}; //Y8
 
 //==============================================
 //data width 16bit
@@ -126,7 +126,7 @@ module canny_top (
   assign ch0_vfb_clk_in  = PIXCLK;       
   assign ch0_vfb_vs_in   = VSYNC;    //negative
   assign ch0_vfb_de_in   = HREF;     //hcnt;  
-  assign ch0_vfb_data_in = cam_data; // RGB565
+  assign ch0_vfb_data_in = cam_data; //Y8
 
 //=====================================================
 //SRAM
@@ -236,7 +236,7 @@ localparam N = 5; //delay N clocks
 //==============================================================================
 //TMDS TX
 
-  assign rgb_data = off0_syn_de ? {off0_syn_data[15:11],3'd0,off0_syn_data[10:5],2'd0,off0_syn_data[4:0],3'd0} : 24'h000000;//{r,g,b}
+  assign rgb_data = off0_syn_de ? {off0_syn_data[7:0], off0_syn_data[7:0], off0_syn_data[7:0]} : 24'h000000;//{r,g,b}
   assign rgb_vs   = Pout_vs_dn[4];//syn_off0_vs;
   assign rgb_hs   = Pout_hs_dn[4];//syn_off0_hs;
   assign rgb_de   = Pout_de_dn[4];//off0_syn_de;
