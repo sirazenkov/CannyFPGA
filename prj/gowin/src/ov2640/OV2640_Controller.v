@@ -26,11 +26,11 @@ module OV2640_Controller (
 
   // Create an instance of a LUT table 
   OV2640_Registers LUT(
-    .clk(clk),                          // 50Mhz clock signal
-    .advance(taken),                    // Flag to advance to next register
-    .command(command),                  // register value and data for OV2640
-    .finished(finished),                // Flag to indicate the configuration is finshed
-    .resend(resend)                     // Re-configure flag for OV2640
+    .clk(clk),           // 50Mhz clock signal
+    .advance(taken),     // Flag to advance to next register
+    .command(command),   // register value and data for OV2640
+    .finished(finished), // Flag to indicate the configuration is finshed
+    .resend(resend)      // Re-configure flag for OV2640
   );
     
   // Create an instance of a SCCB interface

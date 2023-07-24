@@ -53,7 +53,7 @@ module canny_top (
   wire [15:0] off0_syn_data;
 
 //-------------------------------------
-//Hyperram
+//HyperRAM
 
   wire dma_clk;
   wire memory_clk;
@@ -194,21 +194,22 @@ module canny_top (
 //================================================
 
   wire out_de;
-  syn_gen syn_gen_inst (
-    .I_pxl_clk (pix_clk    ),//40MHz      //65MHz      //74.25MHz
-    .I_rst_n   (hdmi_rst_n ),//800x600    //1024x768   //1280x720
-    .I_h_total (16'd1056   ),// 16'd1056  // 16'd1344  // 16'd1650
-    .I_h_sync  (16'd128    ),// 16'd128   // 16'd136   // 16'd40
-    .I_h_bporch(16'd88     ),// 16'd88    // 16'd160   // 16'd220
-    .I_h_res   (16'd800    ),// 16'd800   // 16'd1024  // 16'd1280
-    .I_v_total (16'd628    ),// 16'd628   // 16'd806   // 16'd750
-    .I_v_sync  (16'd4      ),// 16'd4     // 16'd6     // 16'd5
-    .I_v_bporch(16'd23     ),// 16'd23    // 16'd29    // 16'd20
-    .I_v_res   (16'd600    ),// 16'd600   // 16'd768   // 16'd720
-    .I_rd_hres (16'd640    ),
-    .I_rd_vres (16'd480    ),
-    .I_hs_pol  (1'b1       ),//HS polarity , 0:neg.polarity，1：pos.polarity
-    .I_vs_pol  (1'b1       ),//VS polarity , 0:neg.polarity，1：pos.polarity
+  syn_gen # (                 // 800x600  // 1024x768  // 1280x720
+    .H_TOTAL (1056),          // 1056     // 1344      // 1650
+    .H_SYNC  (128 ),          // 128      // 136       // 40
+    .H_BPORCH(88  ),          // 88       // 160       // 220
+    .H_RES   (800 ),          // 800      // 1024      // 1280
+    .V_TOTAL (628 ),          // 628      // 806       // 750
+    .V_SYNC  (4   ),          // 4        // 6         // 5
+    .V_BPORCH(23  ),          // 23       // 29        // 20
+    .V_RES   (600 ),          // 600      // 768       // 720
+    .RD_HRES (640 ),
+    .RD_VRES (480 ),
+    .HS_POL  (1'b1    ), //HS polarity: 0 - neg.polarity，1 - pos.polarity
+    .VS_POL  (1'b1    )  //VS polarity: 0 - neg.polarity，1 - pos.polarity
+  ) syn_gen_inst (
+    .I_pxl_clk (pix_clk    ), //40MHz      //65MHz      //74.25MHz
+    .I_rst_n   (hdmi_rst_n ),
     .O_rden    (syn_off0_re),
     .O_de      (out_de     ),
     .O_hs      (syn_off0_hs),
