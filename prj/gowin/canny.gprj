@@ -15,7 +15,7 @@
         <File path="src/syn_code/syn_gen.v" type="file.verilog" enable="1"/>
         <File path="src/video_frame_buffer/video_frame_buffer.v" type="file.verilog" enable="1"/>
         <File path="src/canny_top.v" type="file.verilog" enable="1"/>
-	    <File path="src/canny.cst" type="file.cst" enable="1"/>
-	    <File path="src/canny.sdc" type="file.sdc" enable="1"/>
+	    <File path="src/physical.cst" type="file.cst" enable="1"/>
+	    <File path="src/timing.sdc" type="file.sdc" enable="1"/>
     </FileList>
 </Project>

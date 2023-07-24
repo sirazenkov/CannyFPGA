@@ -8,8 +8,8 @@ add_file -type verilog "src/ov2640/OV2640_Registers.v"
 add_file -type verilog "src/syn_code/syn_gen.v"
 add_file -type verilog "src/video_frame_buffer/video_frame_buffer.v"
 add_file -type verilog "src/canny_top.v"
-add_file -type cst "src/canny.cst"
-add_file -type sdc "src/canny.sdc"
+add_file -type cst "src/physical.cst"
+add_file -type sdc "src/timing.sdc"
 
 set_device GW1NSR-LV4CQN48PC6/I5 -name GW1NSR-4C
 

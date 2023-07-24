@@ -9,7 +9,7 @@ module canny_top (
   // OV2640 camera
   input        VSYNC,
   input        HREF,
-  input  [9:0] PIXDATA,
+  input  [7:0] PIXDATA,
   input        PIXCLK,
   output       XCLK,
   
@@ -77,7 +77,7 @@ module canny_top (
   wire        rgb_vs;
   wire        rgb_hs;
   wire        rgb_de;
-  wire [23:0] rgb_data;  
+  wire [7:0]  intensity_data;  
 
 //------------------------------------
 //HDMI TX
@@ -86,14 +86,14 @@ module canny_top (
   wire pll_lock;
   wire hdmi_rst_n;
   wire pix_clk;
-  wire clk_12M;
+  wire clk_20M;
 
 //===================================================
 
-  assign XCLK = clk_12M;
+  assign XCLK = clk_20M;
 
   OV2640_Controller u_OV2640_Controller (
-    .clk            (clk_12M), // 24Mhz clock signal
+    .clk            (clk_20M), // 24Mhz clock signal
     .resend         (1'b0   ), // Reset signal
     .config_finished(       ), // Flag to indicate that the configuration is finished
     .sioc           (SCL    ), // SCCB interface - clock signal
@@ -106,7 +106,7 @@ module canny_top (
     if (!irst_n)
       pixdata_d1 <= 8'd0;
     else
-      pixdata_d1 <= PIXDATA[9:2];
+      pixdata_d1 <= PIXDATA;
   end
 
   always @(posedge PIXCLK or negedge irst_n) begin //iclk
@@ -197,14 +197,14 @@ module canny_top (
   syn_gen syn_gen_inst (
     .I_pxl_clk (pix_clk    ),//40MHz      //65MHz      //74.25MHz
     .I_rst_n   (hdmi_rst_n ),//800x600    //1024x768   //1280x720
-    .I_h_total (16'd1650   ),// 16'd1056  // 16'd1344  // 16'd1650
-    .I_h_sync  (16'd40     ),// 16'd128   // 16'd136   // 16'd40
-    .I_h_bporch(16'd220    ),// 16'd88    // 16'd160   // 16'd220
-    .I_h_res   (16'd1280   ),// 16'd800   // 16'd1024  // 16'd1280
-    .I_v_total (16'd750    ),// 16'd628   // 16'd806   // 16'd750
-    .I_v_sync  (16'd5      ),// 16'd4     // 16'd6     // 16'd5
-    .I_v_bporch(16'd20     ),// 16'd23    // 16'd29    // 16'd20
-    .I_v_res   (16'd720    ),// 16'd600   // 16'd768   // 16'd720
+    .I_h_total (16'd1056   ),// 16'd1056  // 16'd1344  // 16'd1650
+    .I_h_sync  (16'd128    ),// 16'd128   // 16'd136   // 16'd40
+    .I_h_bporch(16'd88     ),// 16'd88    // 16'd160   // 16'd220
+    .I_h_res   (16'd800    ),// 16'd800   // 16'd1024  // 16'd1280
+    .I_v_total (16'd628    ),// 16'd628   // 16'd806   // 16'd750
+    .I_v_sync  (16'd4      ),// 16'd4     // 16'd6     // 16'd5
+    .I_v_bporch(16'd23     ),// 16'd23    // 16'd29    // 16'd20
+    .I_v_res   (16'd600    ),// 16'd600   // 16'd768   // 16'd720
     .I_rd_hres (16'd640    ),
     .I_rd_vres (16'd480    ),
     .I_hs_pol  (1'b1       ),//HS polarity , 0:neg.polarity，1：pos.polarity
@@ -236,15 +236,15 @@ localparam N = 5; //delay N clocks
 //==============================================================================
 //TMDS TX
 
-  assign rgb_data = off0_syn_de ? {off0_syn_data[7:0], off0_syn_data[7:0], off0_syn_data[7:0]} : 24'h000000;//{r,g,b}
-  assign rgb_vs   = Pout_vs_dn[4];//syn_off0_vs;
-  assign rgb_hs   = Pout_hs_dn[4];//syn_off0_hs;
-  assign rgb_de   = Pout_de_dn[4];//off0_syn_de;
+  assign intensity_data = off0_syn_de ? off0_syn_data[7:0] : 8'h00; // intensity
+  assign rgb_vs         = Pout_vs_dn[4];//syn_off0_vs;
+  assign rgb_hs         = Pout_hs_dn[4];//syn_off0_hs;
+  assign rgb_de         = Pout_de_dn[4];//off0_syn_de;
 
   TMDS_PLLVR TMDS_PLLVR_inst (
     .clkin  (iclk      ), //input clk 
     .clkout (serial_clk), //output clk 
-    .clkoutd(clk_12M   ), //output clkoutd
+    .clkoutd(clk_20M   ), //output clkoutd
     .lock   (pll_lock  )  //output lock
   );
 
@@ -265,9 +265,9 @@ localparam N = 5; //delay N clocks
     .I_rgb_vs     (rgb_vs         ), 
     .I_rgb_hs     (rgb_hs         ),    
     .I_rgb_de     (rgb_de         ), 
-    .I_rgb_r      (rgb_data[23:16]),  
-    .I_rgb_g      (rgb_data[15: 8]),  
-    .I_rgb_b      (rgb_data[ 7: 0]),  
+    .I_rgb_r      (intensity_data ),  
+    .I_rgb_g      (intensity_data ),  
+    .I_rgb_b      (intensity_data ),  
     .O_tmds_clk_p (O_tmds_clk_p   ),
     .O_tmds_clk_n (O_tmds_clk_n   ),
     .O_tmds_data_p(O_tmds_data_p  ), //{r,g,b}
